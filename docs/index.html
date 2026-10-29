@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="用一只木箱，读懂 Worldgraph 的物品实例、规则、Agent、时间、地图与多人共享世界。附完整结构介绍 Markdown 下载。">
+  <meta name="theme-color" content="#f2f5fc">
+  <title>Worldgraph · 一起读懂这个世界</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="Worldgraph 首页"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M7 8 23 7 18 24 7 8M7 8l-2 14 13 2"/><circle cx="7" cy="8" r="3"/><circle cx="23" cy="7" r="3"/><circle cx="18" cy="24" r="3"/><circle cx="5" cy="22" r="2"/></svg><span>Worldgraph</span></a>
+      <nav aria-label="主要导航"><a href="#workbench">试一次操作</a><a href="#foundation">读懂结构</a><a href="#scope">当前范围</a></nav>
+      <a class="header-download" href="./downloads/worldgraph-architecture-introduction.md" download="Worldgraph-结构介绍-v0.2.md"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v5h14v-5"/></svg><span>下载介绍</span></a>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero wrap" id="top">
+      <div class="hero-copy">
+        <p class="intro-tag"><span></span>一份可以动手试的结构导览</p>
+        <h1>世界很大，<br>先从一只木箱说起。</h1>
+        <p class="hero-description">物品从哪里来？Agent 能做什么？<br class="desktop-break">时间、地图和其他玩家，又怎样连在一起？</p>
+        <p class="hero-answer">Worldgraph 把世界交给规则管理，<br>让人和 Agent 在同一套规则里行动。</p>
+        <a class="button primary" href="#workbench">动手读懂一次操作<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14m-5-5 5 5 5-5"/></svg></a>
+        <p class="hero-note">基于当前设计的讲解 · 不是已上线游戏的功能演示</p>
+      </div>
+      <div class="hero-world" aria-label="两块木板依据配方变成木箱，操作结果进入共同账本">
+        <div class="atlas-grid"></div>
+        <div class="world-label">一条规则，连接几件具体的东西。</div>
+        <div class="object plank plank-a"><i></i><span>木板</span><small>#wood-a</small></div>
+        <div class="object plank plank-b"><i></i><span>木板</span><small>#wood-b</small></div>
+        <div class="rule-stamp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10"/></svg><span>按配方组装</span></div>
+        <div class="crate" aria-hidden="true"><div class="crate-face"><i></i><b></b></div></div>
+        <div class="crate-label"><strong>新的木箱</strong><small>#crate-001</small></div>
+        <div class="ledger-slip"><span class="check-mark">✓</span><div><strong>变化有记录</strong><span>输入、产出、持有人，都可追溯。</span></div></div>
+        <span class="world-corner">示意配方与物品</span>
+      </div>
+    </section>
+
+    <div class="plain-principle"><div class="wrap principle-inner"><p>先记住这一句话</p><strong>Agent 找方法，规则定条件，账本记结果。</strong><span>想法要经过执行，才成为世界里的事实。</span></div></div>
+
+    <section class="section wrap" id="workbench">
+      <div class="section-heading"><div><p class="section-label">从一次操作开始</p><h2>试着把木板变成木箱。</h2></div><p>点一遍，你会看见一条意图，<br>怎样经过检查、等待，再产生结果。</p></div>
+      <div class="demo-disclaimer"><span class="small-dot"></span>讲解演示：配方、物品 ID 和 2 个时间单位均为假设，仅在当前页面运行。</div>
+      <div class="scenario-choices" role="group" aria-label="选择演示情境">
+        <button type="button" data-scenario="ready" aria-pressed="true">材料与条件齐全</button>
+        <button type="button" data-scenario="missing" aria-pressed="false">少一块木板</button>
+        <button type="button" data-scenario="conflict" aria-pressed="false">材料被别人先用</button>
+      </div>
+      <div class="workbench">
+        <div class="bench-inventory">
+          <div class="panel-heading"><h3>玩家眼前的东西</h3><span class="location-tag">工坊</span></div>
+          <div class="inventory-items" id="inventory-items"></div>
+          <div class="recipe"><span>这条配方规定</span><p>木板 × 2 ＋ 可用小锤<br><strong>做成木箱 × 1</strong></p><small>小锤归还可用；木板成为产物的投入。</small></div>
+          <div class="intent"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 4V4Z"/></svg><p>“帮我做一只木箱。”</p></div>
+        </div>
+        <div class="bench-execution">
+          <div class="panel-heading"><h3>系统里发生了什么</h3><button class="text-button" id="demo-reset" type="button">重新开始</button></div>
+          <ol class="pipeline" aria-label="操作经过的四个阶段">
+            <li data-step="0" class="active"><span>1</span><div><strong>找到规则</strong><small>Agent 查询工坊里的配方</small></div></li>
+            <li data-step="1"><span>2</span><div><strong>检查条件</strong><small>物品、持有、地点、可用状态</small></div></li>
+            <li data-step="2"><span>3</span><div><strong>占用并等待</strong><small>进行中的材料不能再用一次</small></div></li>
+            <li data-step="3"><span>4</span><div><strong>提交结果</strong><small>产出新物品，保存操作回执</small></div></li>
+          </ol>
+          <div class="demo-feedback" id="demo-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+          <div class="demo-actions"><button class="button primary" id="demo-action" type="button">查找可用配方</button><span id="tick-indicator">世界时间：0</span></div>
+          <details class="event-details"><summary>展开看一眼账本</summary><pre id="demo-log"></pre><p>这里用可读文字说明事件，真实接口格式仍以最终实现为准。</p></details>
+        </div>
+      </div>
+      <p class="takeaway"><strong>这就是“按规则行动”。</strong> Agent 可以提出操作；操作能否成立，以执行器的检查和结果为准。</p>
+    </section>
+
+    <section class="foundation" id="foundation"><div class="wrap section">
+      <div class="section-heading"><div><p class="section-label">把陌生名词翻成日常语言</p><h2>这套世界，用什么搭起来？</h2></div><p>可以把它想成一座小镇：<br>有东西、有居民、有设施，也有办事规矩。</p></div>
+      <div class="glossary-grid">
+        <details class="concept" open><summary><span class="concept-symbol wood-symbol" aria-hidden="true"></span><span><strong>物品类与实例</strong><small>品类，以及具体的那一件</small></span><i aria-hidden="true"></i></summary><div><p>“木板”是一个类。你手里这块 <code>#wood-a</code> 是实例。两块同款木板，仍有不同 ID。</p><p class="concept-why">为什么要分？系统要知道实际用了哪一件，不能凭一句“我有木板”就开工。</p></div></details>
+        <details class="concept"><summary><span class="concept-symbol owner-symbol" aria-hidden="true"></span><span><strong>物主与持有</strong><small>谁拥有，谁当前能用</small></span><i aria-hidden="true"></i></summary><div><p>真人和智能体居民，都可以持有物品。租来的小锤在许可内可以使用，却不代表它永久属于你。</p><p class="concept-why">同一件东西，不能同时被两个人各用一次。所有权、持有和使用许可要分别说明。</p></div></details>
+        <details class="concept"><summary><span class="concept-symbol entity-symbol" aria-hidden="true"></span><span><strong>实体与账户</strong><small>办事的地方，以及你和它的关系</small></span><i aria-hidden="true"></i></summary><div><p>工厂、商店、矿脉是实体，承载库存和规则。账户连接一个主体与一个实体，记录许可、交易等关系。</p><p class="concept-why">账户不必等于银行余额。当前规划里的支付，是具体物品的转移。</p></div></details>
+        <details class="concept"><summary><span class="concept-symbol rule-symbol" aria-hidden="true"></span><span><strong>通用函数与 DSL</strong><small>做事的方法，以及每一种具体配方</small></span><i aria-hidden="true"></i></summary><div><p>通用函数处理组装所需的输入、输出、设备、损耗和时间。DSL 是按固定格式填写这些条件的规则说明。</p><p class="concept-why">可以增加许多配方，而不为每一种物品重写整套组装程序。超出已有能力的新机制，仍需开发。</p></div></details>
+        <details class="concept"><summary><span class="concept-symbol agent-symbol" aria-hidden="true"></span><span><strong>Agent 与规则索引</strong><small>理解目标、找方法的帮手</small></span><i aria-hidden="true"></i></summary><div><p>你说想做什么，Agent 查找已发布、当前可用的操作，准备实际参数并调用。</p><p class="concept-why">它可以解释结果、提出建议，但不能用一句描述修改账本，也不能凭空增加一种操作。</p></div></details>
+        <details class="concept"><summary><span class="concept-symbol ledger-symbol" aria-hidden="true"></span><span><strong>事务与账本</strong><small>一笔受检查的变化，以及留下的记录</small></span><i aria-hidden="true"></i></summary><div><p>事务把一笔变化完整提交，或完整拒绝。账本记录实际输入、产出、持有和事件。</p><p class="concept-why">“消耗材料”与“收到产物”不能各说各话。重复收到请求，也不能多造一只箱子。</p></div></details>
+      </div>
+      <div class="dsl-example"><div><p class="section-label">一个很有用的区分</p><h3>方法相对稳定，<br>具体内容可以生长。</h3><p>官方 Agent 可以辅助生成不同工艺的规则候选。规则经过约定的校验与发布，才供游玩时调用。<br>“能写出一段说明”与“已经可以执行”，中间还有检查。</p></div><div class="recipe-sheet"><div class="sheet-top"><span>组装方法</span><span>固定的执行结构</span></div><div class="recipe-row"><span>配方 A</span><p>木板、工具、时间 → 木箱</p></div><div class="recipe-row"><span>配方 B</span><p>金属、设备、时间 → 零件</p></div><div class="recipe-row"><span>配方 C</span><p>新的投入与条件 → 新的产物</p></div><small>仅用于说明“同一方法、多种规则”的关系。</small></div></div>
+    </div></section>
+
+    <section class="section wrap" id="space">
+      <div class="section-heading"><div><p class="section-label">当前结构的三个支点</p><h2>交换、时间、地图点。</h2></div><p>世界里的变化有投入和产出，<br>事情需要时间，物品也总在某个地方。</p></div>
+      <div class="map-layout">
+        <div class="map-panel"><div class="map-heading"><h3>一张很小的世界图</h3><span>示意地点与成本</span></div>
+          <div class="route-map" role="group" aria-label="选择地点查看路线成本"><div class="route-line line-a"></div><div class="route-line line-b"></div><button type="button" class="map-node forest selected" data-place="forest" aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="m16 3-9 12h5l-7 9h22l-7-9h5L16 3Zm0 21v6"/></svg><strong>林地</strong><small>取得原料</small></button><button type="button" class="map-node workshop" data-place="workshop" aria-pressed="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28V13l8 4V9l8 6V5h8v23H4ZM9 22h3m5 0h3m4 0h2"/></svg><strong>工坊</strong><small>按规则加工</small></button><button type="button" class="map-node market" data-place="market" aria-pressed="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 13v15h22V13M3 13l3-8h20l3 8H3Zm8 15v-8h10v8"/></svg><strong>集市</strong><small>交换物品</small></button></div>
+          <div class="route-result" id="route-result" aria-live="polite"></div>
+          <p class="map-caption">点一个地点，看看从林地到这里的成本。<br>这些数值只是示例，不是当前游戏的平衡参数。</p>
+        </div>
+        <div class="pillar-notes"><article><span class="note-line teal"></span><h3>交换：每次变化有依据</h3><p>买卖是交换，生产也可以用“投入与产出”表达。消耗、折旧和新增产物，都要由规则声明。</p></article><article><span class="note-line blue"></span><h3>时间：让事情在约定时刻发生</h3><p>世界钟负责加工完成、运输抵达和租期到期。体力是行动资源；两者分别表达等待多久、能做多少。</p></article><article><span class="note-line purple"></span><h3>地图点：让距离成为条件</h3><p>地点之间有路线、耗时和运输成本。先定义连接关系与成本，再决定怎样呈现为场景；不必先模拟完整物理。</p></article></div>
+      </div>
+      <div class="quiet-note"><strong>地图机制与画面还需要接起来。</strong><p>“走到树旁”“靠近柜台”这样的近距离操作，仍要定义画面位置与后台条件如何对应。地点图本身并未完成这部分体验。</p></div>
+    </section>
+
+    <section class="shared-section"><div class="wrap section">
+      <div class="section-heading"><div><p class="section-label">同一个世界，怎样一起玩</p><h2>这块木板，不能被用两次。</h2></div><p>真人和智能体居民可以使用同一套 API。<br>最终结果，取决于提交时的共同状态。</p></div>
+      <div class="shared-demo">
+        <div class="shared-stock"><span class="shared-board" aria-hidden="true"></span><div><strong>公共出售的最后一块木板</strong><p id="stock-owner">当前持有者：商店</p><small>演示：双方都已满足同一购买规则的支付与授权条件。</small></div></div>
+        <div class="race-participants"><div><span class="participant-label">真人玩家 A</span><p>我想买下这块木板。</p><button type="button" id="race-a">让玩家 A 先提交</button></div><div><span class="participant-label">智能体居民 B</span><p>我也在查询同一份库存。</p><button type="button" id="race-b">让居民 B 先提交</button></div></div>
+        <div class="race-result" id="race-result" aria-live="polite">选一方先提交，看看另一方会得到什么结果。</div>
+        <div class="race-controls"><button type="button" id="race-repeat" disabled>重复提交赢家的同一请求</button><button type="button" class="text-button" id="race-reset">重置这段演示</button></div>
+      </div>
+      <div class="shared-lessons"><p><strong>先前查到，不代表现在还在。</strong><span>执行前重新检查，避免两人各自得到同一件物品。</span></p><p><strong>重复请求，不是再做一遍。</strong><span>同一操作返回原来的回执，不会重复买到或重复扣除。</span></p></div>
+    </div></section>
+
+    <section class="section wrap scope-section" id="scope">
+      <div class="section-heading"><div><p class="section-label">把愿景和当前范围分开看</p><h2>现在先把底座跑通。</h2></div><p>这是设计介绍，不是实现完成清单。<br>当前范围按 2026 年 10 月 29 日的讨论收敛。</p></div>
+      <div class="scope-columns"><article class="scope-current"><span class="scope-badge">当前重点</span><h3>让基础经济活动成立</h3><ul><li>可维护、可扩充的交换规则</li><li>时间调度与地图点</li><li>官方提供初期商店、工厂等设施</li><li>检查资源、权限、并发和重复请求</li></ul><p>先验证“获得资源 → 加工 → 交换 → 形成新需求”能否带来选择。</p></article><article class="scope-later"><span class="scope-badge">后续方向</span><h3>让内容与世界逐步生长</h3><ul><li>官方事件和不同主题世界</li><li>用户实体、自定义工艺与物质</li><li>更完整的场景呈现与空间交互</li><li>法律、案件与复杂观察机制暂缓</li></ul><p>这些内容有不同成熟度，尚未形成全部开发与运营安排。</p></article></div>
+      <details class="future-detail"><summary><span>用户能创造新物质，会不会破坏共同规则？</span><i aria-hidden="true"></i></summary><div><p>规划中的做法是保存真实投入的组成。例如用 <strong>3 石头＋2 木头＋1 铝镁合金</strong>做出 ElementX，若木头被消耗，可回收组成就只有 <strong>3 石头＋1 铝镁合金</strong>。</p><p>用户工艺可以少回收，不能超额取回。官方工艺需要金，就要先合法拆出官方金实例；不能只把 ElementX 描述成金，就当成金来用。这部分仍需完整生命周期校验。</p></div></details>
+      <details class="future-detail"><summary><span>Agent 能从现实里，自动生成整个世界的规则吗？</span><i aria-hidden="true"></i></summary><div><p>目标是让 Agent 辅助生产规则内容。起步可以从已支持的模板填写具体材料、工艺与条件，再校验并发布。</p><p>新内容需要尚未实现的能力时，仍要扩展系统。规则写得出来、系统执行得正确、玩家觉得有趣，是三个分别需要验证的问题。</p></div></details>
+      <details class="future-detail"><summary><span>为什么暂时不做完整的法律或物理模拟？</span><i aria-hidden="true"></i></summary><div><p>当前先把物品、交换、时间和地点这些共同基础做好。复杂观察与社会制度保留讨论，不作为起步前置条件。</p><p>基础模拟的深度，应由实际玩家行为决定。以后要加入新的制度或物理效果，需要明确它覆盖哪些动作，以及怎样验证结果。</p></div></details>
+    </section>
+
+    <section class="download-section wrap" id="download"><div class="document-art" aria-hidden="true"><span>Worldgraph</span><div></div><i></i><i></i><i></i><b>.md</b></div><div class="download-copy"><p class="section-label">带走一份完整说明</p><h2>想看得更细，<br>继续读结构介绍。</h2><p>原版 Markdown 包含对象模型、调用流程、两张结构图、用户创造边界，以及单独标注的后续制度讨论。</p><div class="download-actions"><a class="button primary" href="./downloads/worldgraph-architecture-introduction.md" download="Worldgraph-结构介绍-v0.2.md"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 16v5h14v-5"/></svg>下载 Markdown 介绍</a><a href="./downloads/worldgraph-architecture-introduction.md" target="_blank" rel="noopener">打开原文件</a></div><small>介绍稿 v0.2 · 2026.10.29 · 原文保留设计状态与待确认项</small></div></section>
+  </main>
+  <footer class="wrap"><a class="brand" href="#top"><span>Worldgraph</span></a><p>把规则讲清楚，再一起把世界做出来。</p><a href="#top">回到开头</a></footer>
+</body>
+</html>

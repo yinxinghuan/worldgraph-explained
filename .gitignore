@@ -1,0 +1,6 @@
+node_modules/
+.sites-runtime/
+.sites-checkout/
+.DS_Store
+.openai/
+_qa/
